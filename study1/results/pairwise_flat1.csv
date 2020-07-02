@@ -1,0 +1,7 @@
+contrast,estimate,CI 2.5%,CI 97.5%,t,p,d
+pitch - intensity,62.58,45.4,79.76,9.7,0,1.62
+pitch - timbre,58.81,41.63,75.99,9.12,0,1.52
+pitch - location,95.39,78.21,112.57,14.78,0,2.46
+intensity - timbre,-3.77,-20.95,13.41,-0.58,1,-0.1
+intensity - location,32.81,15.63,49.99,5.09,0,0.85
+timbre - location,36.58,19.4,53.76,5.67,0,0.94

@@ -1,0 +1,114 @@
+---
+title: "familiarity_pilot"
+author: "David Quiroga"
+date: "02-07/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+	echo = TRUE,
+	message = FALSE,
+	warning = FALSE
+)
+```
+
+set relevant libraries:
+```{r}
+library(ggplot2)
+library(ggridges)
+library(reshape)
+library(ordinal)
+```
+
+read data:
+```{r}
+subjects = 1:7
+
+count=0;
+for (s in subjects){
+  count = count + 1;
+  cur_sub = read.csv(paste0('../../data/validation/',s,'_familiarity.csv'), sep = ",", header = TRUE)
+  if (count == 1){
+    Fdata = cur_sub  
+  }else{
+    Fdata = rbind(Fdata,cur_sub)
+  }
+}
+```
+
+Put in long format and rename conditions:
+```{r}
+
+Fdata2 <- melt(Fdata,measure.vars = c("familiarity","pleasure","loudness","valence"))
+colnames(Fdata2)[4:5] <- c('question','rating')
+Fdata2[is.element(Fdata2$melID,1:7),"condition"] = "familiar"
+Fdata2[is.element(Fdata2$melID,8:14),"condition"] = "unfamiliar"
+Fdata2$melody <- Fdata2$melID
+Fdata2[is.element(Fdata2$melID,8:14),"melody"] = Fdata2[is.element(Fdata2$melID,8:14),"melody"] - 7
+```
+
+
+Make a plot:
+```{r}
+ggplot(data = Fdata2, aes(x = rating)) +
+  geom_bar() + 
+  facet_grid(condition~question) +
+  theme_bw()
+#ggsave('../results/validation_allq.tiff', width = 170, height = 150, units = 'mm', dpi = 600)
+#ggsave('../results/validation_allq.pdf', width = 170, height = 150, units = 'mm', dpi = 300)
+
+```
+
+```{r}
+ggplot(data = Fdata2[which(Fdata2$question == 'familiarity'),],aes(x = rating)) +
+  geom_bar() + 
+  facet_wrap(~condition,nrow = 2) +
+  theme_bw() +
+  facet_grid(melody~condition) +
+  labs(title = 'Appendix 2 - validation of familiarity stimuli', caption = 'Participants were asked to rate how familiar the melodies were on a scale from 1 to 7. Familiar melodies were rated\nsignificantly higher than their unfamiliar scrambled versions (here presented in the same row), as revealed by a\ncummulative-link mixed-effects model of proportional odds, with melody and subject\nas random effects (X² = 22.02, p < .0001).') +
+  theme(plot.caption = element_text(hjust = 0.5, size = 9))
+
+ggsave('../results/validation.tiff', width = 170, height = 130, units = 'mm', dpi = 600)
+ggsave('../results/appendix 2 - validation.pdf', width = 170, height = 130, units = 'mm', dpi = 300)
+
+```
+
+
+Run some cumulative link mixed effects models on familiarity ratings:
+
+```{r}
+f0 <- clmm(as.factor(rating)~1 + (1|subject) + (1|melID),
+           data = Fdata2[which(Fdata2$question == 'familiarity'),])#;summary(m0)
+f1 <- clmm(as.factor(rating)~condition + (1|subject) + (1|melID), 
+           data = Fdata2[which(Fdata2$question == 'familiarity'),])#;summary(m0)
+anova(f0,f1)
+```
+
+Now for pleasantness:
+```{r}
+p0 <- clmm(as.factor(rating)~1 + (1|subject) + (1|melID),
+           data = Fdata2[which(Fdata2$question == 'pleasure'),])#;summary(m0)
+p1 <- clmm(as.factor(rating)~condition + (1|subject) + (1|melID), 
+           data = Fdata2[which(Fdata2$question == 'pleasure'),])#;summary(m0)
+anova(p0,p1)
+```
+
+for loudness:
+```{r}
+l0 <- clmm(as.factor(rating)~1 + (1|subject) + (1|melID),
+           data = Fdata2[which(Fdata2$question == 'loudness'),])#;summary(m0)
+l1 <- clmm(as.factor(rating)~condition + (1|subject) + (1|melID), 
+           data = Fdata2[which(Fdata2$question == 'loudness'),])#;summary(m0)
+anova(l0,l1)
+```
+
+And for valence:
+```{r}
+v0 <- clmm(as.factor(rating)~1 + (1|subject) + (1|melID),
+           data = Fdata2[which(Fdata2$question == 'valence'),])#;summary(m0)
+v1 <- clmm(as.factor(rating)~condition + (1|subject) + (1|melID), 
+           data = Fdata2[which(Fdata2$question == 'valence'),])#;summary(m0)
+anova(v0,v1)
+```
+

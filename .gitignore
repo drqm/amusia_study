@@ -1,0 +1,8 @@
+#Don't track content of these folders:
+
+data/
+misc/
+
+#Ignore these files:
+
+*.tiff

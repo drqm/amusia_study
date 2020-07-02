@@ -1,0 +1,93 @@
+---
+title: "MA_analyses with electrode rows"
+author: "David Quiroga"
+date: "02/07-2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+	echo = TRUE,
+	message = FALSE,
+	warning = FALSE
+)
+```
+
+set relevant libraries:
+```{r message=FALSE, warning=FALSE}
+library(ggplot2)
+library(ez)
+library(knitr)
+```
+
+Load and organize data:
+```{r}
+# load data:
+data = read.csv('../../data/MA/MA_erows.csv',header = TRUE)
+
+# rename conditions:
+data$condition <- as.character(data$condition)
+data[which(data$condition == 'optimal'),'condition'] <- 'LC'
+data[which(data$condition == 'alberti'),'condition'] <- 'IC'
+data[which(data$condition == 'melody'),'condition'] <- 'HC'
+
+# fix factor order:
+data$condition = factor(data$condition, levels =c('LC','IC','HC','familiar','unfamiliar','hihat'))
+data$feature = factor(data$feature, levels = c('pitch','intensity','timbre', 'location','rhythm'))
+data$group = factor(data$group, levels = c('controls','amusics'))
+data$erow = factor(data$erow, levels = c('anterior','frontal','frontocentral', 'central','centroparietal'))
+
+data$amplitude = data$amplitude/10^-06 # convert to micro Volts
+data <- data[!grepl('rhythm',data$feature),] # exclude rhtyhm MMN
+```
+
+select complexity data:
+```{r}
+cdata <- data[grepl('LC',data$condition) |
+             grepl('IC',data$condition) |
+             grepl('HC',data$condition),]
+```
+
+show sphericity corrections?
+
+```{r}
+detailed = FALSE # change to TRUE to show corrections
+```
+
+Perform complexity tests for all features:
+```{r}
+for (f in unique(cdata$feature)){
+  ctest <- ezANOVA(data= cdata[which(cdata$feature == f),],
+                   amplitude,subject,within = c(condition,erow),
+                   between = c(group),detailed = detailed)
+  print(kable(ctest$ANOVA, caption = paste0('ANOVA results ','(', f, ')')))
+
+  if (detailed){
+    print( kable(ctest$`Mauchly's Test for Sphericity`, caption = 'sphericity tests'))
+    print( kable(ctest$`Sphericity Corrections`, caption = 'sphericity corrections:'))
+  }
+  cat("\n")
+}
+```
+
+select familiarity data:
+```{r}
+fdata <- data[grepl('familiar',data$condition) |
+              grepl('unfamiliar',data$condition),]
+```
+
+Perform familiarity tests for all features:
+```{r}
+for (f in unique(fdata$feature)){
+  ftest <- ezANOVA(data= fdata[which(fdata$feature == f),],
+                   amplitude,subject,within = c(condition,erow),
+                   between = c(group),detailed = detailed)
+  print(kable(ftest$ANOVA, caption = paste0('ANOVA results ','(', f, ')')))
+
+  if (detailed){
+    print( kable(ftest$`Mauchly's Test for Sphericity`, caption = 'sphericity tests'))
+    print( kable(ftest$`Sphericity Corrections`, caption = 'sphericity corrections:'))
+  }
+  cat("\n")
+}
+```

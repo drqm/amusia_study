@@ -1,0 +1,563 @@
+---
+title: "Mean amplitude analyses"
+author: "David Quiroga"
+date: "02/07-2020"
+output: html_document# pdf_document#
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+	echo = TRUE,
+	message = FALSE,
+	warning = FALSE
+)
+```
+
+set relevant libraries:
+```{r message=FALSE, warning=FALSE}
+library(lme4)
+library(ggplot2)
+library(ez)
+library(emmeans)
+library(gridExtra)
+library(knitr)
+
+```
+
+load and organize data:
+
+```{r}
+#data = read.csv('../../data/MA_grand_window.csv',header = TRUE)
+data = read.csv('../../data/MA/MA.csv',header = TRUE)
+
+# rename conditions:
+data$condition <- as.character(data$condition)
+data[which(data$condition == 'optimal'),'condition'] <- 'LC'
+data[which(data$condition == 'alberti'),'condition'] <- 'IC'
+data[which(data$condition == 'melody'),'condition'] <- 'HC'
+
+# order factors:
+data$condition = factor(data$condition,
+                        levels = c('LC','IC','HC',
+                                   'familiar','unfamiliar','hihat'))
+data$feature = factor(data$feature,
+                      levels = c('pitch','intensity','timbre',
+                                 'location','rhythm'))
+data$group = factor(data$group,
+                    levels = c('controls','amusics'))
+
+data$amplitude = data$amplitude/10^-06 # convert to micro Volts
+
+data <- data[!grepl('rhythm',data$feature),] # exclude rhythm
+```
+
+Now let's perform complexity analyses:
+
+First, select data:
+
+```{r}
+cdata <- data[grepl('LC',data$condition) |
+             grepl('IC',data$condition) |
+             grepl('HC',data$condition),]
+```
+
+COMPLEXITY ANALYSES - amplitude 
+
+Fit mixed-effects models:
+```{r}
+
+m0 <- lmer(amplitude~1 + (1|subject),data = cdata);#summary(m0)
+m1 <- lmer(amplitude~condition + (1|subject), data = cdata);#summary(m1)
+m2 <- lmer(amplitude~condition + group + (1|subject), data = cdata);#summary(m2)
+m3 <- lmer(amplitude~condition + group + feature + (1|subject),
+           data = cdata);#summary(m3)
+m4 <- lmer(amplitude~condition + group + feature + condition:feature + (1|subject),
+           data = cdata);#summary(m4)
+m5 <- lmer(amplitude~condition + group + feature + 
+             condition:feature + condition:group + (1|subject),
+           data = cdata);#summary(m5)
+m6 <- lmer(amplitude~condition + group + feature + 
+             condition:feature + condition:group +
+             group:feature + (1|subject),
+           data = cdata);#summary(m6)
+m7 <- lmer(amplitude~condition + group + feature + 
+             condition:feature + condition:group +
+             group:feature + condition:group:feature + (1|subject),
+           data = cdata);#summary(m7)
+```
+
+Now perform Likelihood ratio test and store models:
+
+```{r}
+camp.test <- anova(m0,m1,m2,m3,m4,m5,m6,m7);camp.test # Likelihood ratio test
+camp.models <- list(m0,m1,m2,m3,m4,m5,m6,m7) # store models for report
+```
+
+
+Models 1, 3 and 4 are significant, indicating effects of feature, condition and a feature:condition interaction
+
+Let's try to reproduce the results with ANOVA:
+
+```{r}
+caov <- ezANOVA(data= cdata, amplitude,subject,within = c(condition,feature),
+        between = c(group),detailed = TRUE)
+kable(caov$ANOVA)
+
+```
+
+
+Results are the same!
+
+Now let's do some pairwise contrasts:
+
+```{r}
+confint.camp <- as.data.frame(confint(lsmeans(m4,pairwise~condition|feature,
+                                              adjust = "Bonferroni")$contrast))
+pairwise.camp <-cbind(as.data.frame(lsmeans(m4, pairwise~condition|feature,
+                                            adjust="bonferroni")$contrasts),
+                      confint.camp[c("lower.CL","upper.CL")])
+pairwise.camp <- pairwise.camp[c("feature","contrast","estimate","lower.CL",
+                                 "upper.CL","t.ratio","p.value")]
+pairwise.camp[,"d"] <- pairwise.camp$estimate/sqrt(VarCorr(m4)$subject[1] + sigma(m4)^2)
+pairwise.camp[,3:8] <- round(pairwise.camp[,3:8],2)
+colnames(pairwise.camp) <- c("feature","contrast","estimate",
+                             "CI 2.5%","CI 97.5%","t","p","d")
+
+kable(pairwise.camp)
+write.table(pairwise.camp,file="../results/pairwise_camp.csv",
+            sep=",",row.names = FALSE,quote=FALSE) # Export to a table
+```
+
+
+And now a plot:
+
+```{r}
+camp <- ggplot(cdata,aes(condition, amplitude)) +
+  geom_hline(yintercept = 0) +
+  geom_point(alpha = 0.6,color = 'black',size = 0.8) +
+  geom_line(aes(group = subject), alpha = 0.15) +
+  geom_boxplot(aes(fill = group),alpha = 0.3,
+               color = 'black', width = 0.2) +
+  geom_violin(aes(color = group),color = 'black',
+              alpha = 0.2,trim = FALSE) + 
+  scale_fill_manual(values = c('blue','red')) +
+  facet_grid(feature~group) +
+  xlab('complexity') +
+  ylab('mean amplitude (\U1D707V)') +
+  scale_x_discrete(labels=c("low", "int.","high",
+                            "low", "int.","high")) +
+  theme_bw() +
+  theme(legend.position = "none"); camp
+```
+
+COMPLEXITY ANALYSES - Latency
+
+Fit mixed effects models:
+
+```{r}
+
+latm0 <- lmer(latency~1 + (1|subject),data = cdata);#summary(latm0)
+latm1 <- lmer(latency~condition + (1|subject), data = cdata);#summary(latm1)
+latm2 <- lmer(latency~condition + group + (1|subject), data = cdata);#summary(latm2)
+latm3 <- lmer(latency~condition + group + feature + (1|subject),
+              data = cdata);#summary(latm3)
+latm4 <- lmer(latency~condition + group + feature + condition:feature + (1|subject),
+              data = cdata);#summary(latm4)
+latm5 <- lmer(latency~condition + group + feature + 
+                condition:feature + condition:group + (1|subject),
+              data = cdata);#summary(latm5)
+latm6 <- lmer(latency~condition + group + feature + 
+                condition:feature + condition:group +
+                group:feature + (1|subject),
+              data = cdata);#summary(latm6)
+latm7 <- lmer(latency~condition + group + feature + 
+                condition:feature + condition:group +
+                group:feature + condition:group:feature + (1|subject),
+                data = cdata) #; summary(latm7)
+
+```
+
+Likelihood ratio test and store models:
+
+```{r}
+clat.test <- anova(latm0,latm1,latm2,latm3,latm4,latm5,latm6,latm7); clat.test
+clat.models <- list(latm0,latm1,latm2,latm3,latm4,latm5,latm6,latm7)
+```
+
+
+Same results as for mean amplitudes, although now there is evidence for a group:feature interaction, meaning amusics had longer latencies than controls for pitch MMN across conditions (see below). However, note the high p-value and the fact that the winning model in terms of AIC was latm3. In sum, evidence not entirely conclusive.
+
+Now let's confirm this with an ANOVA:
+```{r}
+claov <- ezANOVA(data = cdata, latency,subject,within = c(condition,feature),
+         between = c(group),detailed = TRUE)
+kable(claov$ANOVA)
+
+```
+
+
+The results are the same, but note that the interaction group:feature is not detected anymore. There was a trend, though.
+
+Now let's do pairwise comparisons:
+
+```{r}
+confint.clat <- as.data.frame(confint(lsmeans(latm4,pairwise~condition|feature,
+                                              adjust = "Bonferroni")$contrast))
+pairwise.clat <-cbind(as.data.frame(lsmeans(latm4, pairwise~condition|feature,
+                                            adjust="bonferroni")$contrasts),
+                      confint.clat[c("lower.CL","upper.CL")])
+pairwise.clat <- pairwise.clat[c("feature","contrast","estimate","lower.CL",
+                                 "upper.CL","t.ratio","p.value")]
+pairwise.clat[," d"] <- pairwise.clat$estimate/sqrt(VarCorr(latm4)$subject[1] + sigma(latm4)^2)
+pairwise.clat[,3:8] <- round(pairwise.clat[,3:8],2)
+colnames(pairwise.clat) <- c("feature","contrast","estimate",
+                             "CI 2.5%","CI 97.5%","t","p","d")
+kable(pairwise.clat)
+write.table(pairwise.clat,file="../results/pairwise_clat1.csv",
+            sep=",",row.names = FALSE,quote=FALSE) # Export to a table
+```
+
+Now pairwise contrasts: group:feature
+
+```{r}
+confint.clat2 <- as.data.frame(confint(lsmeans(latm6,pairwise~group|feature,
+                                              adjust = "Bonferroni")$contrast))
+pairwise.clat2 <-cbind(as.data.frame(lsmeans(latm6, pairwise~group|feature,
+                                            adjust="bonferroni")$contrasts),
+                      confint.clat2[c("lower.CL","upper.CL")])
+pairwise.clat2 <- pairwise.clat2[c("feature","contrast","estimate","lower.CL",
+                                 "upper.CL","t.ratio","p.value")]
+pairwise.clat2[,"d"] <- pairwise.clat2$estimate/sqrt(VarCorr(latm6)$subject[1] + sigma(latm6)^2)
+pairwise.clat2[,3:8] <- round(pairwise.clat2[,3:8],2)
+colnames(pairwise.clat2) <- c("feature","contrast","estimate",
+                             "CI 2.5%","CI 97.5%","t","p","d")
+kable(pairwise.clat2)
+write.table(pairwise.clat2,file="../results/pairwise_clat2.csv",
+            sep=",",row.names = FALSE,quote=FALSE)
+```
+
+
+Here it can be seen that amusics had longer MMN latencies than controls for pitch (20 ms difference)
+
+Now a plot:
+
+```{r}
+clat <- ggplot(cdata,aes(condition, latency)) +
+  geom_hline(yintercept = 0) +
+  geom_point(alpha = 0.6,color = 'black',size = 0.8) +
+  geom_line(aes(group = subject), alpha = 0.15) +
+  geom_boxplot(aes(fill = group),alpha = 0.3,
+               color = 'black', width = 0.2) +
+  geom_violin(aes(color = group),color = 'black',
+              alpha = 0.2,trim = FALSE) + 
+  scale_fill_manual(values = c('blue','red')) +
+  facet_grid(feature~group) +
+  xlab('complexity') +
+  ylab('peak latency (ms)') +
+  scale_x_discrete(labels=c("low", "int.","high",
+                            "low", "int.","high")) +
+  theme_bw() +
+  theme(legend.position = "none");clat
+```
+
+Now let's make a joint report for complexity effects regarding latency and amplitude:
+```{R}
+complexity.report <- data.frame('model' = rownames(camp.test))
+complexity.report[2:nrow(complexity.report),'null'] <- complexity.report[1:nrow(complexity.report)-1,'model']
+                            
+complexity.report <- cbind(complexity.report,round(camp.test[,c('AIC','Chisq','Pr(>Chisq)')],2),
+                                 round(clat.test[,c('AIC','Chisq','Pr(>Chisq)')],2))
+colnames(complexity.report) <- c('model','null','AIC','X2','p','AIC','X2','p')
+
+write.table(complexity.report,file="../results/complexity.report.csv",
+            sep= ",",row.names = FALSE,quote=FALSE)
+kable(complexity.report)
+```
+
+And a similar pairwise table:
+```{r}
+complexity.pw <- cbind(pairwise.camp,pairwise.clat[,c(3:ncol(pairwise.clat))])
+write.table(complexity.pw,file="../results/pairwise_complexity.csv",
+            sep=",",row.names = FALSE,quote=FALSE)
+kable(complexity.pw)
+```
+
+And let's put the complexity plots together:
+```{r}
+cplots <- arrangeGrob(camp,clat,ncol=2);plot(cplots)
+ggsave("../results/MA_complexity.pdf", plot=cplots,width = 170, height = 150, units = 'mm', dpi = 300)
+ggsave("../results/MA_complexity.tiff", plot=cplots,width = 170, height = 150, units = 'mm', dpi = 600)
+```
+
+Now let's move on to familiarity analyses - first, select data:
+
+```{r}
+fdata = data[grepl('familiar',data$condition) |
+             grepl('unfamiliar',data$condition),]
+```
+
+FAMILIARITY ANALYSES - Amplitudes
+
+fit mixed-effects models:
+```{r}
+fm0 <- lmer(amplitude~1 + (1|subject),data = fdata)#;summary(fm0)
+fm1 <- lmer(amplitude~condition + (1|subject), data = fdata)#;summary(fm1)
+fm2 <- lmer(amplitude~condition + group + (1|subject), data = fdata)#;summary(fm2)
+fm3 <- lmer(amplitude~condition + group + feature + (1|subject),
+           data = fdata)#;summary(fm3)
+fm4 <- lmer(amplitude~condition + group + feature + condition:feature + (1|subject),
+           data = fdata)#;summary(fm4)
+fm5 <- lmer(amplitude~condition + group + feature + 
+             condition:feature + condition:group + (1|subject),
+           data = fdata)#;summary(fm5)
+fm6 <- lmer(amplitude~condition + group + feature + 
+             condition:feature + condition:group +
+             group:feature + (1|subject),
+           data = fdata)#;summary(fm6)
+fm7 <- lmer(amplitude~condition + group + feature + 
+             condition:feature + condition:group +
+             group:feature + condition:group:feature + (1|subject),
+           data = fdata)#;summary(fm7)
+```
+
+Likelihood ratio test and store models:
+
+```{r}
+famp.test <- anova(fm0,fm1,fm2,fm3,fm4,fm5,fm6,fm7); famp.test
+famp.models <- list(fm0,fm1,fm2,fm3,fm4,fm5,fm6,fm7)
+```
+
+The results clearly show an effect of feature but nothing else
+
+Let's confirm with ANOVA:
+
+```{r}
+faov <- ezANOVA(data= fdata, amplitude,subject,within = c(condition,feature),
+        between = c(group),detailed = TRUE)
+kable(faov$ANOVA)
+```
+
+
+The anova suggested also a feature by condition interaction, which was only a trend in the LR test. Otherwise, results are identical
+
+Let's do some pairwise contrasts:
+```{r}
+confint.famp <- as.data.frame(confint(lsmeans(fm4,pairwise~feature,
+                                              adjust = "Bonferroni")$contrast))
+pairwise.famp <-cbind(as.data.frame(lsmeans(fm4, pairwise~feature,
+                                            adjust="bonferroni")$contrasts),
+                      confint.famp[c("lower.CL","upper.CL")])
+pairwise.famp <- pairwise.famp[c("contrast","estimate","lower.CL",
+                                 "upper.CL","t.ratio","p.value")]
+pairwise.famp[,"d"] <- pairwise.famp$estimate/sqrt(VarCorr(fm4)$subject[1] + sigma(fm4)^2)
+pairwise.famp[,2:7] <- round(pairwise.famp[,2:7],2)
+colnames(pairwise.famp) <- c("contrast","estimate",
+                             "CI 2.5%","CI 97.5%","t","p","d")
+kable(pairwise.famp)
+
+write.table(pairwise.famp,file="../results/pairwise_famp1.csv",
+            sep=",",row.names = FALSE,quote=FALSE) # Export to a table
+
+
+```
+
+And now taking into account the conditions:
+```{r}
+confint.famp2 <- as.data.frame(confint(lsmeans(fm4,pairwise~condition|feature,
+                                              adjust = "Bonferroni")$contrast))
+pairwise.famp2 <-cbind(as.data.frame(lsmeans(fm4, pairwise~condition|feature,
+                                            adjust="bonferroni")$contrasts),
+                      confint.famp2[c("lower.CL","upper.CL")])
+pairwise.famp2 <- pairwise.famp2[c("contrast","feature","estimate","lower.CL",
+                                 "upper.CL","t.ratio","p.value")]
+pairwise.famp2[,"d"] <- pairwise.famp2$estimate/sqrt(VarCorr(fm4)$subject[1] + sigma(fm4)^2)
+pairwise.famp2[,3:8] <- round(pairwise.famp2[,3:8],2)
+colnames(pairwise.famp2) <- c("contrast","feature","estimate",
+                             "CI 2.5%","CI 97.5%","t","p","d")
+kable(pairwise.famp2)
+
+write.table(pairwise.famp2,file="../results/pairwise_famp2.csv",
+            sep=",",row.names = FALSE,quote=FALSE)
+
+```
+
+This confirms the differences for intensity
+
+And now taking into account the conditions per group:
+
+```{r}
+confint.famp3 <- as.data.frame(confint(lsmeans(fm7,pairwise~condition|group|feature,
+                                              adjust = "Bonferroni")$contrast))
+pairwise.famp3 <-cbind(as.data.frame(lsmeans(fm7, pairwise~condition|group|feature,
+                                            adjust="bonferroni")$contrasts),
+                      confint.famp3[c("lower.CL","upper.CL")])
+pairwise.famp3 <- pairwise.famp3[c("contrast","feature","group","estimate","lower.CL",
+                                 "upper.CL","t.ratio","p.value")]
+pairwise.famp3[,"d"] <- pairwise.famp3$estimate/sqrt(VarCorr(fm7)$subject[1] + sigma(fm7)^2)
+pairwise.famp3[,4:9] <- round(pairwise.famp3[,4:9],2)
+colnames(pairwise.famp3) <- c("contrast","feature","group","estimate",
+                             "CI 2.5%","CI 97.5%","t","p","d")
+kable(pairwise.famp3)
+
+write.table(pairwise.famp3,file="../results/pairwise_famp3.csv",
+            sep=",",row.names = FALSE,quote=FALSE)
+ref <- VarCorr(fm7)
+```
+
+
+Now let's make a figure:
+```{r}
+famp <- ggplot(fdata,aes(condition, amplitude)) +
+  geom_hline(yintercept = 0) +
+  geom_point(alpha = 0.6,color = 'black',size = 0.8) +
+  geom_line(aes(group = subject), alpha = 0.15) +
+  geom_boxplot(aes(fill = group),alpha = 0.3,
+               color = 'black', width = 0.2) +
+  geom_violin(aes(color = group),color = 'black',
+              alpha = 0.2,trim = FALSE) + 
+  scale_fill_manual(values = c('blue','red')) +
+  facet_grid(feature~group) +
+  xlab('familiarity') +
+  ylab('mean amplitude (\U1D707V)') +
+  theme_bw() +
+  theme(legend.position = "none"); famp
+
+```
+
+FAMILIARITY ANALYSES - latencies
+
+fitting mixed-effects models:
+```{r}
+
+flatm0 <- lmer(latency~1 + (1|subject),data = fdata)#;summary(flatm0)
+flatm1 <- lmer(latency~condition + (1|subject), data = fdata)#;summary(flatm1)
+flatm2 <- lmer(latency~condition + group + (1|subject), data = fdata)#;summary(flatm2)
+flatm3 <- lmer(latency~condition + group + feature + (1|subject),
+           data = fdata)#;summary(flatm3)
+flatm4 <- lmer(latency~condition + group + feature + condition:feature + (1|subject),
+           data = fdata)#;summary(flatm4)
+flatm5 <- lmer(latency~condition + group + feature + 
+             condition:feature + condition:group + (1|subject),
+           data = fdata)#;summary(flatm5)
+flatm6 <- lmer(latency~condition + group + feature + 
+             condition:feature + condition:group +
+             group:feature + (1|subject),
+           data = fdata)#;summary(flatm6)
+flatm7 <- lmer(latency~condition + group + feature + 
+             condition:feature + condition:group +
+             group:feature + condition:group:feature + (1|subject),
+           data = fdata)#;summary(flatm7)
+
+```
+
+
+Likelihood ratio test and store models:
+
+```{r}
+flat.test <- anova(flatm0,flatm1,flatm2,flatm3,flatm4,flatm5,flatm6,flatm7); flat.test
+flat.models <- list(flatm0,flatm1,flatm2,flatm3,flatm4,flatm5,flatm6,flatm7)
+```
+
+an effect of feature but nothing else
+
+Let's confirm with an ANOVA:
+
+```{r}
+flaov <- ezANOVA(data= fdata, latency,subject,within = c(condition,feature),
+         between = c(group),detailed = TRUE)
+kable(flaov$ANOVA)
+```
+
+Same results!
+
+Now let's do pairwise comparisons:
+
+```{r}
+confint.flat <- as.data.frame(confint(lsmeans(flatm4,pairwise~feature,
+                                              adjust = "Bonferroni")$contrast))
+pairwise.flat <-cbind(as.data.frame(lsmeans(flatm4, pairwise~feature,
+                                            adjust="bonferroni")$contrasts),
+                      confint.flat[c("lower.CL","upper.CL")])
+pairwise.flat <- pairwise.flat[c("contrast","estimate","lower.CL",
+                                 "upper.CL","t.ratio","p.value")]
+pairwise.flat[,"d"] <- pairwise.flat$estimate/sqrt(VarCorr(flatm4)$subject[1] + sigma(flatm4)^2)
+pairwise.flat[,2:7] <- round(pairwise.flat[,2:7],2)
+colnames(pairwise.flat) <- c("contrast","estimate",
+                             "CI 2.5%","CI 97.5%","t","p","d")
+kable(pairwise.flat)
+
+write.table(pairwise.flat,file="../results/pairwise_flat1.csv",
+            sep=",",row.names = FALSE,quote=FALSE) # Export to a table
+```
+
+Another perspective:
+
+```{r}
+confint.flat2 <- as.data.frame(confint(lsmeans(flatm4,pairwise~condition|feature,
+                                               adjust = "Bonferroni")$contrast))
+pairwise.flat2 <-cbind(as.data.frame(lsmeans(flatm4, pairwise~condition|feature,
+                                             adjust="bonferroni")$contrasts),
+                       confint.flat2[c("lower.CL","upper.CL")])
+pairwise.flat2 <- pairwise.flat2[c("contrast","feature","estimate","lower.CL",
+                                   "upper.CL","t.ratio","p.value")]
+pairwise.flat2[,"d"] <- pairwise.flat2$estimate/sqrt(VarCorr(flatm4)$subject[1] + sigma(flatm4)^2)
+pairwise.flat2[,3:8] <- round(pairwise.flat2[,3:8],2)
+colnames(pairwise.flat2) <- c("contrast","feature","estimate",
+                              "CI 2.5%","CI 97.5%","t","p","d")
+kable(pairwise.flat2)
+
+write.table(pairwise.flat2,file="../results/pairwise_flat2.csv",
+            sep=",",row.names = FALSE,quote=FALSE)
+```
+
+Make a figure
+```{r}
+flat <- ggplot(fdata,aes(condition, latency)) +
+  geom_hline(yintercept = 0) +
+  geom_point(alpha = 0.6,color = 'black', size = 0.6) +
+  geom_line(aes(group = subject), alpha = 0.15) +
+  geom_boxplot(aes(fill = group),alpha = 0.3,
+               color = 'black', width = 0.2) +
+  geom_violin(aes(color = group),color = 'black',
+              alpha = 0.2,trim = FALSE) + 
+  scale_fill_manual(values = c('blue','red')) +
+  facet_grid(feature~group) +
+  xlab('familiarity') +
+  ylab('peak latency (ms)') +
+  theme_bw() +
+  theme(legend.position = "none"); flat
+
+```
+
+Make joint familiarity reports:
+
+```{r}
+
+familiarity.report <- data.frame('model' = rownames(famp.test))
+familiarity.report[2:nrow(familiarity.report),'null'] <- familiarity.report[1:nrow(familiarity.report)-1,'model']
+
+familiarity.report <- cbind(familiarity.report,round(famp.test[,c('AIC','Chisq','Pr(>Chisq)')],2),
+                           round(flat.test[,c('AIC','Chisq','Pr(>Chisq)')],2))
+colnames(familiarity.report) <- c('model','null','AIC','X2','p','AIC','X2','p')
+
+write.table(familiarity.report,file="../results/familiarity.report.csv",
+            sep= ",",row.names = FALSE,quote=FALSE)
+kable(familiarity.report)
+```
+
+```{r}
+familiarity.pw <- cbind(pairwise.famp,pairwise.flat[,c(2:ncol(pairwise.flat))])
+write.table(familiarity.pw,file="../results/pairwise_familiarity.csv",
+            sep=",",row.names = FALSE,quote=FALSE)
+kable(familiarity.pw)
+```
+
+And make a joint figure:
+
+```{r}
+fplots <- arrangeGrob(famp,flat,ncol=2);plot(fplots)
+ggsave("../results/MA_familiarity.pdf", plot=fplots,width = 170, height = 150, units = 'mm', dpi = 300)
+ggsave("../results/MA_familiarity.tiff", plot=fplots,width = 170, height = 150, units = 'mm', dpi = 600)
+
+```
+

@@ -1,0 +1,227 @@
+---
+title: "Mean amplitude analyses - Bayesian"
+author: "David Quiroga"
+date: "02/07-2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+	echo = TRUE,
+	message = FALSE,
+	warning = FALSE
+)
+```
+
+set relevant libraries:
+```{r message=FALSE, warning=FALSE}
+library(ggplot2)
+library(ez)
+library(knitr)
+library(brms)
+```
+
+Load and organize data:
+```{r}
+# load data:
+data = read.csv('../../data/MA/MA.csv',header = TRUE)
+
+# rename conditions:
+data$condition <- as.character(data$condition)
+data[which(data$condition == 'optimal'),'condition'] <- 'LC'
+data[which(data$condition == 'alberti'),'condition'] <- 'IC'
+data[which(data$condition == 'melody'),'condition'] <- 'HC'
+
+# fix factor order:
+data$condition = factor(data$condition, levels =c('LC','IC','HC','familiar','unfamiliar','hihat'))
+data$feature = factor(data$feature, levels = c('pitch','intensity','timbre', 'location','rhythm'))
+data$group = factor(data$group, levels = c('controls','amusics'))
+
+data$amplitude = data$amplitude/10^-06 # convert to micro Volts
+data <- data[!grepl('rhythm',data$feature),] # exclude rhtyhm MMN
+```
+
+select complexity data and pitch:
+```{r}
+cdata <- data[(grepl('LC',data$condition) |
+             grepl('IC',data$condition) |
+             grepl('HC',data$condition)) & 
+             grepl('pitch',data$feature),]
+```
+
+Inspect prior structure:
+
+```{r}
+prior_prelim = get_prior(amplitude~group*condition + (1|subject), data = cdata)
+
+```
+
+define a conservative prior for the interaction centered around 0:
+```{r}
+ priors1 <-  c(set_prior('normal(0,1)', coef = 'groupamusics:conditionIC'),
+               set_prior('normal(0,1)', coef = 'groupamusics:conditionHC'))
+```
+
+define a less conservative prior for the interaction centered around 1 microvolt:
+```{r}
+ priors2 <-  c(set_prior('normal(1,1)', coef = 'groupamusics:conditionIC'),
+               set_prior('normal(1,1)', coef = 'groupamusics:conditionHC'))
+```
+
+Fit models to data:
+```{r}
+b0 <- brm(amplitude~0 + intercept +
+            group + condition +
+            (1|subject),
+            data = cdata,
+            cores=8,
+            sample_prior = TRUE,
+            save_all_pars = TRUE,
+            seed = 050990,
+            iter = 1000)
+
+b1 <- brm(amplitude~0 + intercept +
+            group*condition +
+            (1|subject),
+            data = cdata,
+            cores=8,
+            sample_prior = TRUE,
+            save_all_pars = TRUE,
+            prior = priors1,
+            seed = 050990,
+            iter = 1000)
+
+b2 <- brm(amplitude~0 + intercept +
+            group*condition +
+            (1|subject),
+            data = cdata,
+            cores=8,
+            sample_prior = TRUE,
+            save_all_pars = TRUE,
+            prior = priors2,
+            seed = 050990,
+            iter = 1000)
+
+```
+
+obtain Bayes factors for the interaction terms:
+```{r}
+hypotheses <- c('groupamusics:conditionIC = 0',
+                'groupamusics:conditionHC = 0')
+BF.b1 <- hypothesis(b1,hypotheses);BF.b1
+BF.b2 <- hypothesis(b2,hypotheses);BF.b2
+
+```
+
+The results indicate that Bayes factors remain between 0.35 and 1.47 which constitutes pretty inconclusive evidence for an interaction between group and condition
+
+We can also compare models against the null directly:
+```{r}
+bayes_factor(b0,b1)
+bayes_factor(b0,b2)
+
+```
+
+in both cases the Bayes factors favor a null model, but their are still very inconlusive
+
+
+Now we do the same analyses for familiarity analyses
+
+First, select data:
+```{r}
+fdata <- data[(grepl('familiar',data$condition) |
+             grepl('unfamiliar',data$condition)) & 
+             grepl('pitch',data$feature),]
+```
+
+
+Inspect prior structure:
+
+```{r}
+fprior_prelim = get_prior(amplitude~group*condition + (1|subject), data = fdata)
+
+```
+
+define a conservative prior for the interaction centered around 0:
+```{r}
+ fpriors1 <-  c(set_prior('normal(0,1)', coef = 'groupamusics:conditionunfamiliar'))
+```
+
+define a less conservative prior for the interaction centered around 1 microvolt:
+```{r}
+ fpriors2 <-  c(set_prior('normal(1,1)', coef = 'groupamusics:conditionunfamiliar'))
+```
+
+Fit models to data:
+```{r}
+f0 <- brm(amplitude~0 + intercept +
+            group + condition +
+            (1|subject),
+            data = fdata,
+            cores=8,
+            sample_prior = TRUE,
+            save_all_pars = TRUE,
+            seed = 050990,
+            iter = 1000)
+
+f1 <- brm(amplitude~0 + intercept +
+            group*condition +
+            (1|subject),
+            data = fdata,
+            cores=8,
+            sample_prior = TRUE,
+            save_all_pars = TRUE,
+            prior = fpriors1,
+            seed = 050990,
+            iter = 1000)
+
+f2 <- brm(amplitude~0 + intercept +
+            group*condition +
+            (1|subject),
+            data = fdata,
+            cores=8,
+            sample_prior = TRUE,
+            save_all_pars = TRUE,
+            prior = fpriors2,
+            seed = 050990,
+            iter = 1000)
+
+```
+
+
+obtain Bayes factors for the interaction term:
+```{r}
+hypotheses <- c('groupamusics:conditionunfamiliar = 0')
+BF.f1 <- hypothesis(f1,hypotheses);BF.f1
+BF.f2 <- hypothesis(f2,hypotheses);BF.f2
+
+```
+
+Bayes factors are 0.56 and 0.5, still very inconclusive.
+
+We can also compare models against the null directly:
+```{r}
+bayes_factor(f0,f1)
+bayes_factor(f0,f2)
+
+```
+
+We confirm the inconclusiveness of BF: 0.48 and 0.65
+
+
+Finally let's plot the models to check convergence:
+```{r}
+plot(b1, ask = FALSE)
+```
+
+```{r}
+plot(b2, ask = FALSE)
+```
+
+```{r}
+plot(f1, ask = FALSE)
+```
+
+```{r}
+plot(f2, ask = FALSE)
+```
