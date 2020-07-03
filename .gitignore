@@ -6,3 +6,4 @@ misc/
 #Ignore these files:
 
 *.tiff
+*.Rhistory
