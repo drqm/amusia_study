@@ -124,7 +124,7 @@ def plot_std_dev(feature,group,cond,ch_names,channs,stat_results,
     
     topo_ax.set_title(cond_name,fontsize = 14)
     disp_lat = str(int(np.round(lat[0]*1000,0))) + ' ms'
-    topo_ax.annotate(disp_lat,xy = (0.5,-0.5),xytext = (0.5,-0.5),
+    topo_ax.annotate(disp_lat,xy = (0.5,-0.35),xytext = (0.5,-0.35),
     xycoords = ('axes fraction','axes fraction'),
     textcoords='offset points',
     size=10, ha='center', va='bottom') 

@@ -30,10 +30,10 @@ groups = ['controls','amusics']
 data_dir = wd + '/data/timelock/data/'
 out_dir = wd + '/study1/results/'
 conditions = ['optimal','alberti','melody','familiar','unfamiliar']
-do_stats = 0
-extract_MA1 = 1
-extract_MA2 = 1
-extract_MA3 = 1
+do_stats = 0 # 1 will run stats, no otherwise
+extract_MA1 = 0 # 1 will extract and save mean amplitudes
+extract_MA2 = 0 # 1 will extract MA per row of electrodes
+extract_MA3 = 0 # 1 will extract MA around grand-mean peaks
 
 cond_names = ['low complexity','int. complexity','high complexity',
               'familiar','unfamiliar']
@@ -653,7 +653,7 @@ cond_names = ['LC','IC','HC']
 
 ## Prepare figure and grid:
 #f = plt.figure(figsize = (10,13))
-f = plt.figure(figsize = (8.27,9.69))
+f = plt.figure(figsize = (8.27,10.69))
 #plt.suptitle('Complexity', fontsize = 20)
 gs = gridspec.GridSpec(12,11,left=0.05, right=0.98,
                        top=0.93,bottom = 0.01,
@@ -738,7 +738,7 @@ f.legend(handles=legend_elements, loc=[0.3,0.005],ncol = 3, edgecolor = 'black',
            shadow = True,framealpha = 1)             
 plt.tight_layout()             
 plt.savefig(out_dir + 'std_dev_complexity.pdf') 
-plt.savefig(out_dir + 'std_dev_complexity.tiff', dpi = 600) 
+plt.savefig(out_dir + 'std_dev_complexity.png', dpi = 300)
 
 plt.close('all')
 
@@ -755,7 +755,7 @@ cond_names = ['familiar','unfamiliar']
 
 ## Prepare figure and grid:
 #f = plt.figure(figsize = (10,13))
-f = plt.figure(figsize = (8.27,9.69))
+f = plt.figure(figsize = (8.27,11))
 #plt.suptitle('Complexity', fontsize = 20)
 gs = gridspec.GridSpec(12,8,left=0.05, right=0.98,
                        top=0.93,bottom = 0.01,
@@ -841,7 +841,7 @@ f.legend(handles=legend_elements, loc=[0.3,0.005],ncol = 3, edgecolor = 'black',
            shadow = True,framealpha = 1)             
 plt.tight_layout()             
 plt.savefig(out_dir + 'std_dev_familiarity.pdf') 
-plt.savefig(out_dir + 'std_dev_familiarity.tiff', dpi = 600) 
+plt.savefig(out_dir + 'std_dev_familiarity.png', dpi = 300) 
 
 plt.close('all')
 
@@ -1028,7 +1028,7 @@ f.legend(handles=legend_elements, loc=[0.3,0.005],ncol = 3, edgecolor = 'black',
            shadow = True,framealpha = 1) 
 plt.tight_layout()
 plt.savefig(out_dir + 'complexity.pdf')
-plt.savefig(out_dir + 'complexity.tiff', dpi = 600)
+plt.savefig(out_dir + 'complexity.png', dpi = 300)
 
 plt.close('all')
 
@@ -1151,7 +1151,7 @@ f.legend(handles=legend_elements, loc=[0.2,0.005],ncol = 3, edgecolor = 'black',
 
 plt.tight_layout()        
 plt.savefig(out_dir + 'familiarity.pdf')
-plt.savefig(out_dir + 'familiarity.tiff', dpi = 600)
+plt.savefig(out_dir + 'familiarity.png', dpi = 300)
 plt.close('all')        
                 
 ########################## Familiarity interaction ##########################

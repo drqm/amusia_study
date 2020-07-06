@@ -286,7 +286,7 @@ And let's put the complexity plots together:
 ```{r}
 cplots <- arrangeGrob(camp,clat,ncol=2);plot(cplots)
 ggsave("../results/MA_complexity.pdf", plot=cplots,width = 170, height = 150, units = 'mm', dpi = 300)
-ggsave("../results/MA_complexity.tiff", plot=cplots,width = 170, height = 150, units = 'mm', dpi = 600)
+ggsave("../results/MA_complexity.png", plot=cplots,width = 170, height = 150, units = 'mm', dpi = 300)
 ```
 
 Now let's move on to familiarity analyses - first, select data:
@@ -557,7 +557,7 @@ And make a joint figure:
 ```{r}
 fplots <- arrangeGrob(famp,flat,ncol=2);plot(fplots)
 ggsave("../results/MA_familiarity.pdf", plot=fplots,width = 170, height = 150, units = 'mm', dpi = 300)
-ggsave("../results/MA_familiarity.tiff", plot=fplots,width = 170, height = 150, units = 'mm', dpi = 600)
+ggsave("../results/MA_familiarity.png", plot=fplots,width = 170, height = 150, units = 'mm', dpi = 300)
 
 ```
 

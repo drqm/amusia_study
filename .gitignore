@@ -2,8 +2,8 @@
 
 data/
 misc/
+study1/scripts/__pycache__/
 
 #Ignore these files:
 
-*.tiff
 *.Rhistory
