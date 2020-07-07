@@ -4,9 +4,9 @@ In this repository you will find the code used to run the experiment and analyze
 
 The repository has the following content:
 
-1- "materials/MMN_paradigm/": The materials used to run the paradigms including matlab functions to randomize the stimuli taken from https://github.com/drqm/Musical-MMN-paradigms. We also include .sce and .pcl files to display the stimuli with Presentation (Neurobs), as well as the sound files used.
+- "materials/MMN_paradigm/": The materials used to run the paradigms including matlab functions to randomize the stimuli taken from https://github.com/drqm/Musical-MMN-paradigms. We also include .sce and .pcl files to display the stimuli with Presentation (Neurobs), as well as the sound files used.
 
-2- "Preprocessing_scripts/": Here we include scripts to visualize, clean and average the data. Scripts include automatic and manual ICA as well as epoching and timelocking of event related responses. Note that all the blocks included in the experiment (even those not reported in study 1) are processed with these scripts. Analyses of these data will be reported in the future.
+- "Preprocessing_scripts/": Here we include scripts to visualize, clean and average the data. Scripts include automatic and manual ICA as well as epoching and timelocking of event related responses. Note that all the blocks included in the experiment (even those not reported in study 1) are processed with these scripts. Analyses of these data will be reported in the future.
 
-3- "Study1/": here we report the analysis scripts ("scripts/") and results ("results/") of study 1, focusing on the effect of complexity and familiarity on MMN responses in amusics. Python scripts for clsuter-based analyses at the scalp level, as werr as R script for mean amplitude analyses are included.
+- "Study1/": here we report the analysis scripts ("scripts/") and results ("results/") of study 1, focusing on the effect of complexity and familiarity on MMN responses in amusics. Python scripts for clsuter-based analyses at the scalp level, as werr as R script for mean amplitude analyses are included.
 
