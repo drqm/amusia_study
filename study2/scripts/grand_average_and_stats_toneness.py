@@ -7,10 +7,11 @@ import pickle
 import matplotlib as mpl
 import os
 
-wd = 'C:/Users/au571303/Documents/projects/amusia_study'
+#wd = 'C:/Users/au571303/Documents/projects/amusia_study'
+wd = '/Users/jonathannasielski/Desktop/UCU/S6/Thesis/amusia_study'
 os.chdir(wd + '/study2/scripts')
 
-subjects = pnd.read_csv(wd +  '/misc/subjects_info.csv', sep = ';')
+subjects = pnd.read_csv(wd +  '/data/subjects_info.csv', sep = ';')
 #subjects = subjects_info[['subject','group']]
 
 group_counts = {'amusic': 0, 'control': 0, 'all': 0}
@@ -194,4 +195,59 @@ for idx, row in subjects.iterrows():
 
 # and save to csv:
 MA_data.to_csv( wd + '/data/MA/MA_toneness.csv', index = None, header = True)
+
+#Plot standards and deviants
+fig = plt.figure(figsize = (15,15))
+gs = gridspec.GridSpec(11,3,left=0.05, right=0.98,
+                       top=0.93,bottom = 0.05,
+                       wspace=0.35, hspace = 0.35,
+                       width_ratios = [0.001,1,1],
+                       height_ratios = [1,1,0.1,1,1,0.1,1,1,0.1,1,1])
+channs = ['Fz','Fc1']
+features = ['intensity','pitch','timbre','location']
+conds = ['optimal','hihat']
+groups = ['controls','amusics']
+spac = 0.2377
+for fidx,f in enumerate(features):
+  for gidx,g in enumerate(groups):
+    group_ax = plt.subplot(gs[fidx*3+gidx,0])
+    group_ax.axis('off')
+    group_ax.annotate(g, xy = (0.5,0.5),#xytext = (0.1,0.95),
+                         # xycoords = ('figure fraction','figure fraction'), 
+                          textcoords='offset points', size=13.5, ha='center',
+                          va='center',rotation = 90)
+    for cidx,c in enumerate(conds):
+      std = grand_avg[g][c]['standard'].copy().pick_channels(channs).data.mean(0)
+      dev = grand_avg[g][c][f].copy().pick_channels(channs).data.mean(0)
+      MMN = grand_avg[g][c][f+'_MMN'].copy().pick_channels(channs).data.mean(0)
+      time = grand_avg[g][c]['standard'].times
+      evkd_ax1 = plt.subplot(gs[fidx*3+gidx,cidx+1])
+      evkd_ax1.plot(time,std,'b--',label = 'standard')
+      evkd_ax1.plot(time,dev,'r--',label = 'deviant')
+      evkd_ax1.plot(time,MMN,'k-',label = 'MMN')
+          
+      evkd_ax1.set_xlim([-0.25,0.4])
+      evkd_ax1.set_ylim([-5.5e-6,6e-6])
+      #evkd_ax1.legend(fontsize = 12, framealpha = 1, edgecolor = 'black',shadow = True)
+  evkd_ax1.annotate(f, xy = (0.12,0.978 - spac*fidx),
+                      xytext = (0.12,0.978- spac*fidx),
+      xycoords = ('figure fraction','figure fraction'), textcoords='offset points',
+      size=16, ha='left', va='top')
+      
+## Add legend
+legend_elements = [mpl.lines.Line2D([0], [0], color='b', lw=4, label='Standard',
+                                    ls = '--'),
+                   mpl.lines.Line2D([0], [0], color='r', lw=4, label='Deviant',
+                                    ls = '--'),
+                   mpl.lines.Line2D([0], [0], color='k', lw=4, label='MMN',
+                                    ls = '-')
+                   ]
+
+fig.legend(handles=legend_elements, loc=[0.45,0.005],ncol = 3, edgecolor = 'black',
+           shadow = True,framealpha = 1)    
+plt.tight_layout()
+plt.savefig(wd + '/study2/results/first_figures.pdf') 
+
+
+
 
