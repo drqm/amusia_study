@@ -103,7 +103,7 @@ for group in all_groups:
 
 ######################## Extract Mean Amplitudes ############################
 components = ['MMN','P3a']
-TWs = [[0.07,0.25],[0.2,0.4]]
+TWs = [[0.07,0.25],[0.15,0.35]]
 flip = [1,-1]
 chan_sels = [['Fz','F1','F2','F3','F4','FCz','FC1','FC2','FC3','FC4'],
             ['FCz','FC1','FC2','FC3','FC4','Cz','C1','C2','C3','C4']]
@@ -197,17 +197,17 @@ for idx, row in subjects.iterrows():
 MA_data.to_csv( wd + '/data/MA/MA_toneness.csv', index = None, header = True)
 
 #Plot standards and deviants
-fig = plt.figure(figsize = (15,15))
-gs = gridspec.GridSpec(11,3,left=0.05, right=0.98,
+fig = plt.figure(figsize = (10,15))
+gs = gridspec.GridSpec(8,3,left=0.05, right=0.98,
                        top=0.93,bottom = 0.05,
                        wspace=0.35, hspace = 0.35,
                        width_ratios = [0.001,1,1],
-                       height_ratios = [1,1,0.1,1,1,0.1,1,1,0.1,1,1])
-channs = ['Fz','Fc1']
-features = ['intensity','pitch','timbre','location']
+                       height_ratios = [1,1,0.1,1,1,0.1,1,1])
+channs = ['Fz']
+features = ['intensity','timbre','location']
 conds = ['optimal','hihat']
 groups = ['controls','amusics']
-spac = 0.2377
+spac = 0.315
 for fidx,f in enumerate(features):
   for gidx,g in enumerate(groups):
     group_ax = plt.subplot(gs[fidx*3+gidx,0])
@@ -217,9 +217,9 @@ for fidx,f in enumerate(features):
                           textcoords='offset points', size=13.5, ha='center',
                           va='center',rotation = 90)
     for cidx,c in enumerate(conds):
-      std = grand_avg[g][c]['standard'].copy().pick_channels(channs).data.mean(0)
-      dev = grand_avg[g][c][f].copy().pick_channels(channs).data.mean(0)
-      MMN = grand_avg[g][c][f+'_MMN'].copy().pick_channels(channs).data.mean(0)
+      std = grand_avg[g][c]['standard'].copy().pick_channels(channs).data.mean(0)*(1e6)
+      dev = grand_avg[g][c][f].copy().pick_channels(channs).data.mean(0)*(1e6)
+      MMN = grand_avg[g][c][f+'_MMN'].copy().pick_channels(channs).data.mean(0)*(1e6)
       time = grand_avg[g][c]['standard'].times
       evkd_ax1 = plt.subplot(gs[fidx*3+gidx,cidx+1])
       evkd_ax1.plot(time,std,'b--',label = 'standard')
@@ -227,10 +227,10 @@ for fidx,f in enumerate(features):
       evkd_ax1.plot(time,MMN,'k-',label = 'MMN')
           
       evkd_ax1.set_xlim([-0.25,0.4])
-      evkd_ax1.set_ylim([-5.5e-6,6e-6])
+      evkd_ax1.set_ylim([-5.5,6])
       #evkd_ax1.legend(fontsize = 12, framealpha = 1, edgecolor = 'black',shadow = True)
-  evkd_ax1.annotate(f, xy = (0.12,0.978 - spac*fidx),
-                      xytext = (0.12,0.978- spac*fidx),
+  evkd_ax1.annotate(f, xy = (0.12,0.96 - spac*fidx),
+                      xytext = (0.12,0.96- spac*fidx),
       xycoords = ('figure fraction','figure fraction'), textcoords='offset points',
       size=16, ha='left', va='top')
       
@@ -243,11 +243,62 @@ legend_elements = [mpl.lines.Line2D([0], [0], color='b', lw=4, label='Standard',
                                     ls = '-')
                    ]
 
-fig.legend(handles=legend_elements, loc=[0.45,0.005],ncol = 3, edgecolor = 'black',
+fig.legend(handles=legend_elements, loc=[0.35,0.005],ncol = 3, edgecolor = 'black',
            shadow = True,framealpha = 1)    
 plt.tight_layout()
 plt.savefig(wd + '/study2/results/first_figures.pdf') 
 
 
+## Plot difference between conditions
+fig = plt.figure(figsize = (10,5))
+gs = gridspec.GridSpec(3,4,left=0.05, right=0.98,
+                       top=0.93,bottom = 0.05,
+                       wspace=0.35, hspace = 0.35,
+                       width_ratios = [0.001,1,1,1],
+                       height_ratios = [1,1,0.1])
+channs = ['Fz']
+features = ['intensity','timbre','location']
+conds = ['optimal','hihat']
+groups = ['controls','amusics']
+spac = 0.315
+for fidx,f in enumerate(features):
+  for gidx,g in enumerate(groups):
+    group_ax = plt.subplot(gs[gidx,0])
+    group_ax.axis('off')
+    group_ax.annotate(g, xy = (0.5,0.5),#xytext = (0.1,0.95),
+                         # xycoords = ('figure fraction','figure fraction'), 
+                          textcoords='offset points', size=13.5, ha='center',
+                          va='center',rotation = 90)
 
+    opt = grand_avg[g]['optimal'][f+'_MMN'].copy().pick_channels(channs).data.mean(0)*(1e6)
+    hih = grand_avg[g]['hihat'][f + '_MMN'].copy().pick_channels(channs).data.mean(0)*(1e6)
+    dif = grand_avg[g]['optimal'][f+'_MMN'].copy()
+    dif = opt - hih
+    time = grand_avg[g][c]['standard'].times
+    evkd_ax1 = plt.subplot(gs[gidx,fidx+1])
+    evkd_ax1.plot(time,opt,'b--',label = 'optimal')
+    evkd_ax1.plot(time,hih,'r--',label = 'hihat')
+    evkd_ax1.plot(time,dif,'k-',label = 'difference')
+        
+    evkd_ax1.set_xlim([-0.25,0.4])
+    evkd_ax1.set_ylim([-5.5,6])
+      #evkd_ax1.legend(fontsize = 12, framealpha = 1, edgecolor = 'black',shadow = True)
+  evkd_ax1.annotate(f, xy = (0.2 + spac*fidx,0.98),
+                      xytext = (0.2+ spac*fidx,0.98),
+      xycoords = ('figure fraction','figure fraction'), textcoords='offset points',
+      size=16, ha='left', va='top')
+      
+## Add legend
+legend_elements = [mpl.lines.Line2D([0], [0], color='b', lw=4, label='optimal',
+                                    ls = '--'),
+                   mpl.lines.Line2D([0], [0], color='r', lw=4, label='hihat',
+                                    ls = '--'),
+                   mpl.lines.Line2D([0], [0], color='k', lw=4, label='difference',
+                                    ls = '-')
+                   ]
+
+fig.legend(handles=legend_elements, loc=[0.35,0.005],ncol = 3, edgecolor = 'black',
+           shadow = True,framealpha = 1)    
+plt.tight_layout()
+plt.savefig(wd + '/study2/results/dif_figures.pdf') 
 
