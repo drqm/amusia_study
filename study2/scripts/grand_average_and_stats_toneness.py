@@ -106,7 +106,7 @@ components = ['MMN','P3a']
 TWs = [[0.07,0.25],[0.15,0.35]]
 flip = [1,-1]
 chan_sels = [['Fz','F1','F2','F3','F4','FCz','FC1','FC2','FC3','FC4'],
-            ['FCz','FC1','FC2','FC3','FC4','Cz','C1','C2','C3','C4']]
+            ['Fz','F1','F2','F3','F4','FCz','FC1','FC2','FC3','FC4']]
 times = grand_avg['controls']['optimal']['pitch_MMN'].times
 
 features = ['intensity','timbre','location']
@@ -302,3 +302,9 @@ fig.legend(handles=legend_elements, loc=[0.35,0.005],ncol = 3, edgecolor = 'blac
 plt.tight_layout()
 plt.savefig(wd + '/study2/results/dif_figures.pdf') 
 
+## Plot topography
+times=[0.075,0.1,0.125,0.15,0.175,0.2,0.225,0.25]
+grand_avg['controls']['hihat']['location_MMN'].plot_topomap(times=times,vmin=-6,vmax=6)
+grand_avg['controls']['optimal']['location_MMN'].plot_topomap(times=times,vmin=-6,vmax=6)
+grand_avg['amusics']['hihat']['location_MMN'].plot_topomap(times=times,vmin=-6,vmax=6)
+grand_avg['amusics']['optimal']['location_MMN'].plot_topomap(times=times,vmin=-6,vmax=6)

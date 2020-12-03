@@ -1,0 +1,4 @@
+feature;contrast;estimate;CI 2.5%;CI 97.5%;t;d;p
+intensity;hihat - optimal;31.59;14.79;48.39;3.71;0.78;0.000282
+location;hihat - optimal;18.53;1.73;35.33;2.18;0.46;0.030837
+timbre;hihat - optimal;-6.59;-23.39;10.21;-0.77;-0.16;0.439747
