@@ -1,0 +1,13 @@
+contrast;condition;feature;group;estimate;CI 2.5%;CI 97.5%;t;p
+P3a_standard - P3a_deviant;hihat;intensity;amusics;-1.41;-2.36;-0.47;-2.95;0.003411
+P3a_standard - P3a_deviant;optimal;intensity;amusics;-1.42;-2.37;-0.48;-2.97;0.003191
+P3a_standard - P3a_deviant;hihat;location;amusics;-1.58;-2.52;-0.63;-3.29;0.001104
+P3a_standard - P3a_deviant;optimal;location;amusics;-3.16;-4.1;-2.21;-6.59;0
+P3a_standard - P3a_deviant;hihat;timbre;amusics;-4.83;-5.77;-3.88;-10.06;0
+P3a_standard - P3a_deviant;optimal;timbre;amusics;-2.18;-3.12;-1.24;-4.55;8e-06
+P3a_standard - P3a_deviant;hihat;intensity;controls;-1.01;-1.96;-0.07;-2.12;0.035109
+P3a_standard - P3a_deviant;optimal;intensity;controls;-2.21;-3.15;-1.27;-4.61;6e-06
+P3a_standard - P3a_deviant;hihat;location;controls;-2.05;-2.99;-1.1;-4.27;2.6e-05
+P3a_standard - P3a_deviant;optimal;location;controls;-3.85;-4.8;-2.91;-8.03;0
+P3a_standard - P3a_deviant;hihat;timbre;controls;-5.14;-6.08;-4.19;-10.71;0
+P3a_standard - P3a_deviant;optimal;timbre;controls;-1.89;-2.84;-0.95;-3.95;9.4e-05

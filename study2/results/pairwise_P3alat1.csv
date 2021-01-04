@@ -1,0 +1,7 @@
+feature;group;contrast;estimate;CI 2.5%;CI 97.5%;t;d;p
+intensity;amusics;hihat - optimal;24.24;0.48;47.99;2.01;0.6;0.045609
+intensity;controls;hihat - optimal;38.94;15.18;62.7;3.24;0.97;0.001467
+location;amusics;hihat - optimal;13.47;-10.29;37.23;1.12;0.33;0.264463
+location;controls;hihat - optimal;23.59;-0.17;47.34;1.96;0.58;0.051623
+timbre;amusics;hihat - optimal;-20;-43.76;3.76;-1.66;-0.5;0.098343
+timbre;controls;hihat - optimal;6.82;-16.93;30.58;0.57;0.17;0.571338
