@@ -304,7 +304,43 @@ plt.savefig(wd + '/study2/results/dif_figures.pdf')
 
 ## Plot topography
 times=[0.075,0.1,0.125,0.15,0.175,0.2,0.225,0.25]
-grand_avg['controls']['hihat']['location_MMN'].plot_topomap(times=times,vmin=-6,vmax=6)
-grand_avg['controls']['optimal']['location_MMN'].plot_topomap(times=times,vmin=-6,vmax=6)
-grand_avg['amusics']['hihat']['location_MMN'].plot_topomap(times=times,vmin=-6,vmax=6)
-grand_avg['amusics']['optimal']['location_MMN'].plot_topomap(times=times,vmin=-6,vmax=6)
+
+#f=plt.figure(figsize=(12,20))
+#topogrid = gridspec.GridSpec(9,12,left=0.05, right=0.98,
+                       #top=0.93,bottom = 0.05,
+                       #wspace=0.35, hspace = 0.35,
+                       #height_ratios = [1,1,1,1,1,1,1,1,1],
+                       #width_ratios = [1,1,1,1,1,1,1,1,1,1,1,1]) 
+                       
+fig,axes=plt.subplots(nrows=12, ncols=9, figsize=(20,12), gridspec_kw={'width_ratios': [1, 1, 1, 1, 1, 1, 1, 1, 0.1]})
+
+grand_avg['controls']['hihat']['location_MMN'].plot_topomap(times=times,vmin=-6,vmax=6,axes=axes[0,0:8], colorbar=False)
+grand_avg['controls']['optimal']['location_MMN'].plot_topomap(times=times,vmin=-6,vmax=6,axes=axes[1,0:8], time_format='', colorbar=False)
+grand_avg['amusics']['hihat']['location_MMN'].plot_topomap(times=times,vmin=-6,vmax=6,axes=axes[2,0:8], time_format='', colorbar=False)
+grand_avg['amusics']['optimal']['location_MMN'].plot_topomap(times=times,vmin=-6,vmax=6,axes=axes[3,0:8], time_format='', colorbar=False)
+
+grand_avg['controls']['hihat']['timbre_MMN'].plot_topomap(times=times,vmin=-6,vmax=6,axes=axes[4,0:8], time_format='', colorbar=False)
+grand_avg['controls']['optimal']['timbre_MMN'].plot_topomap(times=times,vmin=-6,vmax=6,axes=axes[5,0:8], time_format='', colorbar=False)
+grand_avg['amusics']['hihat']['timbre_MMN'].plot_topomap(times=times,vmin=-6,vmax=6,axes=axes[6,0:8], time_format='', colorbar=False)
+grand_avg['amusics']['optimal']['timbre_MMN'].plot_topomap(times=times,vmin=-6,vmax=6,axes=axes[7,0:8], time_format='', colorbar=False)
+
+grand_avg['controls']['hihat']['intensity_MMN'].plot_topomap(times=times,vmin=-6,vmax=6,axes=axes[8,0:8], time_format='', colorbar=False)
+grand_avg['controls']['optimal']['intensity_MMN'].plot_topomap(times=times,vmin=-6,vmax=6,axes=axes[9,0:8], time_format='', colorbar=False)
+grand_avg['amusics']['hihat']['intensity_MMN'].plot_topomap(times=times,vmin=-6,vmax=6,axes=axes[10,0:8], time_format='', colorbar=False)
+grand_avg['amusics']['optimal']['intensity_MMN'].plot_topomap(times=times,vmin=-6,vmax=6,axes=axes[11,0:8], time_format='', colorbar=False)
+
+## Add colorbar
+cmap = mpl.cm.RdBu_r
+norm = mpl.colors.Normalize(vmin=-6, vmax=6)
+cax = axes[0,8]
+pos = cax.get_position()
+new_pos = [pos.x0 + 0, pos.y0 + 0, pos.width*1, pos.height*1] 
+cax.set_position(new_pos)
+cb1 = mpl.colorbar.ColorbarBase(cax, cmap=cmap,
+                                norm=norm,
+                                orientation='vertical',
+                                ticklocation = 'right')
+cb1.ax.tick_params(labelsize=7,size = 0)
+cb1.set_ticks([-6,0,6])
+
+plt.savefig(wd + '/study2/results/topoplot.pdf') 
