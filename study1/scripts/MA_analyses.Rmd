@@ -28,7 +28,7 @@ load and organize data:
 
 ```{r}
 #data = read.csv('../../data/MA_grand_window.csv',header = TRUE)
-data = read.csv('../../data/MA/MA.csv',header = TRUE)
+data = read.csv('../../data/MA/MA.csv',header = TRUE, dec = ",")
 
 # rename conditions:
 data$condition <- as.character(data$condition)
@@ -45,6 +45,9 @@ data$feature = factor(data$feature,
                                  'location','rhythm'))
 data$group = factor(data$group,
                     levels = c('controls','amusics'))
+
+data$amplitude <- as.numeric(as.character(data$amplitude))
+data$latency <- as.numeric(as.character(data$latency))
 
 data$amplitude = data$amplitude/10^-06 # convert to micro Volts
 
@@ -561,3 +564,45 @@ ggsave("../results/MA_familiarity.png", plot=fplots,width = 170, height = 150, u
 
 ```
 
+Finally, let's do some exploratory correlation analyses of MBEA and MMN amplitudes
+```{r}
+cors <- data.frame()
+ct <- 0
+for (c in unique(data$condition)){
+  for (f in unique(data$feature)){
+    ct = ct+1
+    curd <-data[data$feature == f & data$condition == c, ] 
+    cor_MBEA <- cor.test(curd$MBEA,curd$amplitude)
+    cor_MBEA_p <- cor.test(curd$MBEA_pitch,curd$amplitude)
+    cors[ct,'condition'] <- c
+    cors[ct,'feature'] <- f
+    cors[ct,'r(MBEA)'] <- cor_MBEA$estimate
+    cors[ct,'p(MBEA)'] <- cor_MBEA$p.value
+    cors[ct,'r(MBEA.pitch)'] <- cor_MBEA_p$estimate
+    cors[ct,'p(MBEA.pitch)'] <- cor_MBEA_p$p.value
+  }
+}
+cors[,3:6] <- round(cors[,3:6],2)
+kable(cors)
+```
+And latencies:
+```{r}
+corsl <- data.frame()
+ct <- 0
+for (c in unique(data$condition)){
+  for (f in unique(data$feature)){
+    ct = ct+1
+    curd <-data[data$feature == f & data$condition == c, ] 
+    cor_MBEA <- cor.test(curd$MBEA,curd$latency)
+    cor_MBEA_p <- cor.test(curd$MBEA_pitch,curd$latency)
+    corsl[ct,'condition'] <- c
+    corsl[ct,'feature'] <- f
+    corsl[ct,'r(MBEA)'] <- cor_MBEA$estimate
+    corsl[ct,'p(MBEA)'] <- cor_MBEA$p.value
+    corsl[ct,'r(MBEA.pitch)'] <- cor_MBEA_p$estimate
+    corsl[ct,'p(MBEA.pitch)'] <- cor_MBEA_p$p.value
+  }
+}
+corsl[,3:6] <- round(corsl[,3:6],2)
+kable(corsl)
+```
