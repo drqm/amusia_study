@@ -3,7 +3,10 @@
 data/
 misc/
 study1/scripts/__pycache__/
+study2/stimuli/
 
 #Ignore these files:
-
+# R or IDE related
 *.Rhistory
+*.vscode/
+*.DS_Store
