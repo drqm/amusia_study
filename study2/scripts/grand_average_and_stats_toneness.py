@@ -1,3 +1,11 @@
+# This script loads data, calculates grand averages, 
+# extracts mean amplitudes and produces plots.
+# Plots include Figures 2, 3 and 4 in the paper.
+
+# You can run the script as is or you can also run it interactively using
+# VSCode or something similar. This is what '# %%' lines are for.
+
+# %%
 import mne
 import matplotlib.pyplot as plt
 import pandas as pnd
@@ -7,27 +15,46 @@ import pickle
 import matplotlib as mpl
 import os
 
-#wd = 'C:/Users/au571303/Documents/projects/amusia_study'
-wd = '/Users/jonathannasielski/Desktop/UCU/S6/Thesis/amusia_study'
+# %%
+# place your working directory here
+# wd = 'C:/Users/au571303/Documents/projects/amusia_study'
+# wd = '/Users/jonathannasielski/Desktop/UCU/S6/Thesis/amusia_study'
+wd = '/Users/kbas/cloud/lab/amusia_study'
 os.chdir(wd + '/study2/scripts')
 
-subjects = pnd.read_csv(wd +  '/data/subjects_info.csv', sep = ';')
-#subjects = subjects_info[['subject','group']]
+# load subjects data
+subjects = pnd.read_csv(wd +  '/data/subjects_info.csv', sep = ',')
+# subjects = subjects_info[['subject','group']]
 
+# dicts for holding data
+
+# how many people in each groups
 group_counts = {'amusic': 0, 'control': 0, 'all': 0}
+
+# mne evoked objects in groups
 all_groups = {'controls': {}, 'amusics': {}, 'all': {}}
+
+# raw data, not mne evoked objects
 all_stats = {'controls': {}, 'amusics': {}, 'all': {}}
+
+# mapping of subjects to raw data
 sub_mapping = {'controls': {}, 'amusics': {}, 'all': {}}
 
+# paths for storing data and output results
 data_dir = wd + '/data/timelock/data/'
 out_dir = wd + '/study2/results/'
+
+# %%
 ############################ Load the data ###################################
 conds = ['optimal' , 'hihat']
+
+# iterate for each subject
 for idx, row in subjects.iterrows():
     print(idx, 'loading subject:',row['subject'], '   group:', row['group'])
     sub, group = row['subject'], row['group']
     group_counts[group] = group_counts[group] + 1
     group_counts['all'] = group_counts['all'] + 1
+
     for cond in conds:
       filename = data_dir + str(sub) + '_' + cond + '_timelocked-ave.fif'
       evokeds = mne.read_evokeds(filename)
@@ -83,6 +110,7 @@ for idx, row in subjects.iterrows():
                                         cur_data.copy()),0)
           all_stats['all'][cond][feat_name] = stats_array.copy()
 
+# %%
 ########################### Grand averages ##################################
 grand_avg = {'controls': {}, 'amusics': {}, 'all': {}}
 for group in all_groups:
@@ -101,6 +129,7 @@ for group in all_groups:
 # pickle.dump(grand_avg,fileavg)
 # fileavg.close()
 
+# %%
 ######################## Extract Mean Amplitudes ############################
 components = ['MMN','P3a']
 TWs = [[0.07,0.25],[0.15,0.35]]
@@ -196,7 +225,17 @@ for idx, row in subjects.iterrows():
 # and save to csv:
 MA_data.to_csv( wd + '/data/MA/MA_toneness.csv', index = None, header = True)
 
-#Plot standards and deviants
+# get ids of EEG channels as a dict with channel names as keys:
+# get a single evoked object
+ch_n = all_groups['all']['optimal']['intensity'][0].ch_names
+chann_ids = dict(zip(ch_n, range(len(ch_n))))
+
+
+# %%
+# PLOTS
+
+# Figure 3. Standards, deviants and MMN.
+
 fig = plt.figure(figsize = (10,15))
 gs = gridspec.GridSpec(8,3,left=0.05, right=0.98,
                        top=0.93,bottom = 0.05,
@@ -204,18 +243,21 @@ gs = gridspec.GridSpec(8,3,left=0.05, right=0.98,
                        width_ratios = [0.001,1,1],
                        height_ratios = [1,1,0.1,1,1,0.1,1,1])
 channs = ['Fz']
-features = ['intensity','timbre','location']
-conds = ['optimal','hihat']
-groups = ['controls','amusics']
+features = ['intensity', 'timbre', 'location']
+conds = ['optimal', 'hihat']
+groups = ['controls', 'amusics']
 spac = 0.315
+
 for fidx,f in enumerate(features):
   for gidx,g in enumerate(groups):
     group_ax = plt.subplot(gs[fidx*3+gidx,0])
     group_ax.axis('off')
-    group_ax.annotate(g, xy = (0.5,0.5),#xytext = (0.1,0.95),
-                         # xycoords = ('figure fraction','figure fraction'), 
-                          textcoords='offset points', size=13.5, ha='center',
-                          va='center',rotation = 90)
+    group_ax.annotate(g, xy = (0.5,0.5),
+        xytext = (0.1,0.95),
+        # xycoords = ('figure fraction','figure fraction'), 
+        textcoords='offset points', size=13.5, ha='center',
+        va='center',rotation = 90)
+    
     for cidx,c in enumerate(conds):
       std = grand_avg[g][c]['standard'].copy().pick_channels(channs).data.mean(0)*(1e6)
       dev = grand_avg[g][c][f].copy().pick_channels(channs).data.mean(0)*(1e6)
@@ -225,10 +267,27 @@ for fidx,f in enumerate(features):
       evkd_ax1.plot(time,std,'b--',label = 'standard')
       evkd_ax1.plot(time,dev,'r--',label = 'deviant')
       evkd_ax1.plot(time,MMN,'k-',label = 'MMN')
-          
+
+      # individual subject MMN traces
+      channel_id = chann_ids['Fz']
+      for s in all_stats[g][c][f+'_MMN']:
+        isp_data =  s[:, channel_id] * 1e6
+        evkd_ax1.plot(time,isp_data,'k-', alpha=.15,
+                     linewidth = 0.5)
+
+      # 95% CI shades
+      se_data = all_stats[g][c][f + '_MMN'][:, :, channel_id]
+      stdev = np.std(se_data, 0)
+      se = stdev/np.sqrt(se_data.shape[0])
+      ci_upper = MMN + 1.96*1e6*se
+      ci_lower = MMN - 1.96*1e6*se
+
+      evkd_ax1.fill_between(time, ci_lower, ci_upper, color='k', alpha=.2)
+
       evkd_ax1.set_xlim([-0.25,0.4])
-      evkd_ax1.set_ylim([-5.5,6])
+      evkd_ax1.set_ylim([-7,7])
       #evkd_ax1.legend(fontsize = 12, framealpha = 1, edgecolor = 'black',shadow = True)
+  
   evkd_ax1.annotate(f, xy = (0.12,0.96 - spac*fidx),
                       xytext = (0.12,0.96- spac*fidx),
       xycoords = ('figure fraction','figure fraction'), textcoords='offset points',
@@ -245,10 +304,12 @@ legend_elements = [mpl.lines.Line2D([0], [0], color='b', lw=4, label='Standard',
 
 fig.legend(handles=legend_elements, loc=[0.35,0.005],ncol = 3, edgecolor = 'black',
            shadow = True,framealpha = 1)    
-plt.tight_layout()
+
+# print/save figure
+# plt.tight_layout()
 plt.savefig(wd + '/study2/results/first_figures.pdf') 
 
-
+# %%
 ## Plot difference between conditions
 fig = plt.figure(figsize = (10,5))
 gs = gridspec.GridSpec(3,4,left=0.05, right=0.98,
@@ -261,6 +322,8 @@ features = ['intensity','timbre','location']
 conds = ['optimal','hihat']
 groups = ['controls','amusics']
 spac = 0.315
+channel_id = chann_ids['Fz']
+
 for fidx,f in enumerate(features):
   for gidx,g in enumerate(groups):
     group_ax = plt.subplot(gs[gidx,0])
@@ -276,10 +339,31 @@ for fidx,f in enumerate(features):
     dif = opt - hih
     time = grand_avg[g][c]['standard'].times
     evkd_ax1 = plt.subplot(gs[gidx,fidx+1])
-    evkd_ax1.plot(time,opt,'b--',label = 'optimal')
+    evkd_ax1.plot(time,opt,'b--',label = 'piano')
     evkd_ax1.plot(time,hih,'r--',label = 'hihat')
     evkd_ax1.plot(time,dif,'k-',label = 'difference')
-        
+
+    # individual subject difference traces
+    # zip optimal and hihat conditions, iterate over both
+    zip_conditions = zip(all_stats[g]['optimal'][f+'_MMN'], 
+                         all_stats[g]['hihat'][f+'_MMN'])
+    for s_opt, s_hh in zip_conditions:
+        isp_opt = s_opt[:, channel_id] * 1e6
+        isp_hh = s_hh[:, channel_id] * 1e6
+        isp_data = isp_opt - isp_hh
+        evkd_ax1.plot(time, isp_data, 'k-', alpha=.15,
+                      linewidth=0.5)
+    
+    # 95% CI shades
+    se_opt = all_stats[g]['optimal'][f + '_MMN'][:, :, channel_id]
+    se_hh = all_stats[g]['hihat'][f + '_MMN'][:, :, channel_id]
+    se_data = se_opt - se_hh
+    stdev = np.std(se_data, 0)
+    se = stdev/np.sqrt(se_data.shape[0])
+    ci_upper = dif + 1.96*1e6*se
+    ci_lower = dif - 1.96*1e6*se
+    evkd_ax1.fill_between(time, ci_lower, ci_upper, color='k', alpha=.2)
+
     evkd_ax1.set_xlim([-0.25,0.4])
     evkd_ax1.set_ylim([-5.5,6])
       #evkd_ax1.legend(fontsize = 12, framealpha = 1, edgecolor = 'black',shadow = True)
@@ -298,10 +382,13 @@ legend_elements = [mpl.lines.Line2D([0], [0], color='b', lw=4, label='optimal',
                    ]
 
 fig.legend(handles=legend_elements, loc=[0.35,0.005],ncol = 3, edgecolor = 'black',
-           shadow = True,framealpha = 1)    
-plt.tight_layout()
+           shadow = True,framealpha = 1)  
+
+# print/save figure
+# plt.tight_layout()
 plt.savefig(wd + '/study2/results/dif_figures.pdf') 
 
+# %%
 ## Plot topography
 times=[0.075,0.1,0.125,0.15,0.175,0.2,0.225,0.25]
 
@@ -343,4 +430,6 @@ cb1 = mpl.colorbar.ColorbarBase(cax, cmap=cmap,
 cb1.ax.tick_params(labelsize=7,size = 0)
 cb1.set_ticks([-6,0,6])
 
+# print/save figure
 plt.savefig(wd + '/study2/results/topoplot.pdf') 
+
