@@ -242,6 +242,9 @@ gs = gridspec.GridSpec(8,3,left=0.05, right=0.98,
                        wspace=0.35, hspace = 0.35,
                        width_ratios = [0.001,1,1],
                        height_ratios = [1,1,0.1,1,1,0.1,1,1])
+
+fig.suptitle("MMN signals", fontsize=16)
+
 channs = ['Fz']
 features = ['intensity', 'timbre', 'location']
 conds = ['optimal', 'hihat']
@@ -308,6 +311,7 @@ fig.legend(handles=legend_elements, loc=[0.35,0.005],ncol = 3, edgecolor = 'blac
 # print/save figure
 # plt.tight_layout()
 plt.savefig(wd + '/study2/results/first_figures.pdf') 
+plt.savefig(wd + '/study2/results/first_figures.png') 
 
 # %%
 ## Plot difference between conditions
@@ -387,6 +391,7 @@ fig.legend(handles=legend_elements, loc=[0.35,0.005],ncol = 3, edgecolor = 'blac
 # print/save figure
 # plt.tight_layout()
 plt.savefig(wd + '/study2/results/dif_figures.pdf') 
+plt.savefig(wd + '/study2/results/dif_figures.png') 
 
 # %%
 ## Plot topography
