@@ -311,7 +311,7 @@ fig.legend(handles=legend_elements, loc=[0.35,0.005],ncol = 3, edgecolor = 'blac
 # print/save figure
 # plt.tight_layout()
 plt.savefig(wd + '/study2/results/first_figures.pdf') 
-plt.savefig(wd + '/study2/results/first_figures.png') 
+plt.savefig(wd + '/study2/results/first_figures.png', dpi=300) 
 
 # %%
 ## Plot difference between conditions
@@ -391,7 +391,7 @@ fig.legend(handles=legend_elements, loc=[0.35,0.005],ncol = 3, edgecolor = 'blac
 # print/save figure
 # plt.tight_layout()
 plt.savefig(wd + '/study2/results/dif_figures.pdf') 
-plt.savefig(wd + '/study2/results/dif_figures.png') 
+plt.savefig(wd + '/study2/results/dif_figures.png', dpi=300) 
 
 # %%
 ## Plot topography
