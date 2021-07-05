@@ -56,66 +56,74 @@ S_r_piano = librosa.amplitude_to_db(
 # a stereo spectrogram of hihat and piano
 
 
-# define ticks
+fig, axs = plt.subplots(4, figsize=(14, 12), dpi=300)
+plt.subplots_adjust(hspace=.3)
+
+# plot spectrograms
+librosa.display.specshow(S_l_hh, sr=sr, y_axis='log',
+                         x_axis='s', hop_length=128, vmax=0, vmin=-80,
+                         cmap='viridis', ax=axs[0])
+
+librosa.display.specshow(S_r_hh, sr=sr, y_axis='log',
+                         x_axis='s', hop_length=128, vmax=0, vmin=-80,
+                         cmap='viridis', ax=axs[1])
+
+librosa.display.specshow(S_l_piano, sr=sr, y_axis='log',
+                         x_axis='s', hop_length=128, vmax=0, vmin=-80,
+                         cmap='viridis', ax=axs[2])
+
+librosa.display.specshow(S_r_piano, sr=sr, y_axis='log',
+                         x_axis='s', hop_length=128, vmax=0, vmin=-80,
+                         cmap='viridis', ax=axs[3])
+
+
+# define axis titles, ticks and tick labels for y axis
 ticks = [60, 120, 250, 500, 1000, 2000, 4000, 8000, 16000]
 labels = ['60', '120', '250', '500', '1k', '2k', '4k', '8k', '16k']
+titles = ['Hihat (L)', 'Hihat (R)', 'Piano (L)', 'Piano (R)']
 
-#db spectrogram
-plt.figure(1, figsize=(14, 10), dpi=300)
+# set
+for ax, title in zip(axs, titles):
+    ax.set(title=title, xlabel=None)
+    ax.set_yticks(ticks)
+    ax.set_yticklabels(labels)
 
-# Left hihat
-plt.subplot(411)
-librosa.display.specshow(S_l_hh, sr=sr, y_axis='log', 
-                         x_axis='s', hop_length=128, vmax=0, vmin=-80)
-ax = plt.gca()
-ax.set(title='Hihat', xlabel=None)
-ax.add_patch(Rectangle(
-    (.01, 1), .25, 16500, label='Standard',  linewidth=1, edgecolor='r', facecolor='none'
+
+# add rectangles to axes
+for ax in axs:
+    # intensity
+    ax.add_patch(Rectangle(
+        (.22, 20), width=.22, height=18000,
+        label='Standard',  linewidth=1,
+        edgecolor='r', facecolor='none'
     ))
-plt.yticks(ticks, labels)
-plt.set_cmap('viridis')
+    ax.text(.28, -70, 'intensity', color='red')
 
+    # move everything on x by 0.5
+    offset = .5
+    # location
+    ax.add_patch(Rectangle(
+        (.22+offset, 20), width=.22, height=18000,
+        label='Standard',  linewidth=1,
+        edgecolor='r', facecolor='none'
+    ))
+    ax.text(.28+offset, -70, 'location', color='red')
 
-# right hihat
-plt.subplot(412)
-librosa.display.specshow(S_r_hh, sr=sr, y_axis='log',
-                         x_axis='s', hop_length=128, vmax=0, vmin=-80)
-ax = plt.gca()
-ax.set(title=None, xlabel=None)
-plt.yticks(ticks, labels)
-plt.set_cmap('viridis')
+    # timbre
+    ax.add_patch(Rectangle(
+        (.22+(2*offset), 20), width=.22, height=18000,
+        label='Standard',  linewidth=1,
+        edgecolor='r', facecolor='none'
+    ))
+    ax.text(.3+(2*offset), -70, 'timbre', color='red')
 
+# xlabel only for last axis
+axs[3].set(xlabel='Time (s)')
 
-# left piano
-plt.subplot(413)
-librosa.display.specshow(S_l_piano, sr=sr, y_axis='log',
-                         x_axis='s', hop_length=128, vmax=0, vmin=-80)
-ax = plt.gca()
-ax.set(title='Piano', xlabel=None)
-plt.yticks(ticks, labels)
-plt.set_cmap('viridis')
-
-
-# right piano
-plt.subplot(414)
-librosa.display.specshow(S_r_piano, sr=sr, y_axis='log',
-                         x_axis='s', hop_length=128, vmax=0, vmin=-80)
-ax = plt.gca()
-ax.set(title=None)
-plt.yticks(ticks, labels)
-plt.set_cmap('viridis')
-# plt.colorbar()
-
-
-# uncomment this if you want to show the plot instead of writing it to file
-# plt.show()
-
-
-plt.savefig('../results/spectrogram.png')
-plt.savefig('../results/spectrogram.jpg')
-print('Saved spectrogram to ../results/')
-
-
+# show plot
+plt.savefig('spectrogram.png')
+plt.savefig('spectrogram.jpg')
+plt.show()
 ## AUTOCORRELATION PLOT
 # %%
 def sec_smpls(sec, sr=44100):
@@ -193,3 +201,5 @@ print(f'Spectral entropy of hihat signal is {ent_hh}')
 print(f'Spectral entropy of piano signal is {ent_piano}')
 print(f'Spectral entropy of noise signal is {ent_noise}')
 
+
+# %%

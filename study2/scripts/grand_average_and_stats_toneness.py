@@ -377,7 +377,7 @@ for fidx,f in enumerate(features):
       size=16, ha='left', va='top')
       
 ## Add legend
-legend_elements = [mpl.lines.Line2D([0], [0], color='b', lw=4, label='optimal',
+legend_elements = [mpl.lines.Line2D([0], [0], color='b', lw=4, label='piano',
                                     ls = '--'),
                    mpl.lines.Line2D([0], [0], color='r', lw=4, label='hihat',
                                     ls = '--'),
@@ -438,3 +438,5 @@ cb1.set_ticks([-6,0,6])
 # print/save figure
 plt.savefig(wd + '/study2/results/topoplot.pdf') 
 
+
+# %%
