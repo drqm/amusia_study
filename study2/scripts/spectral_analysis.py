@@ -1,4 +1,4 @@
-# This script produces spectrogram and autocorrelation plots for the stimuli
+# This script produces waveform, spectrogram and autocorrelation plots for the stimuli
 # used in the study. It also calculates the spectral entropy of the sitmuli.
 # The stimuli are stored in the 'stimuli' folder and are
 # available upon request from the authors.
@@ -20,6 +20,20 @@ hh, sr = librosa.load('../stimuli/hh_spectr.wav', sr=None, mono=False)
 piano, sr = librosa.load('../stimuli/piano_spectr.wav', sr=None, mono=False)
 
 # hh[0] holds left, hh[1] right channels
+
+# %%
+
+## WAVEFORM PLOTS
+
+fig, (ax, ax2) = plt.subplots(ncols=2, sharey=True, figsize=(14, 4), dpi=300)
+ax.set_title("Hi-hat")
+librosa.display.waveshow(hh[0][:int(sr/4)], sr=sr, ax=ax, marker='.')
+ax2.set_title("Piano")
+librosa.display.waveshow(piano[0][:int(sr/4)], sr=sr, ax=ax2, marker='.')
+plt.savefig('waveforms.pdf')
+plt.savefig('waveforms.png')
+
+
 
 # %%
 ## SPECTROGRAM
@@ -124,8 +138,13 @@ axs[3].set(xlabel='Time (s)')
 plt.savefig('spectrogram.png')
 plt.savefig('spectrogram.jpg')
 plt.show()
-## AUTOCORRELATION PLOT
+
+
+
 # %%
+
+## AUTOCORRELATION PLOT
+
 def sec_smpls(sec, sr=44100):
     return int(sr * sec)
 

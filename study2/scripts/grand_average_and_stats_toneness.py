@@ -289,10 +289,10 @@ for fidx,f in enumerate(features):
 
       evkd_ax1.set_xlim([-0.25,0.4])
       evkd_ax1.set_ylim([-7,7])
-      #evkd_ax1.legend(fontsize = 12, framealpha = 1, edgecolor = 'black',shadow = True)
+      # evkd_ax1.legend(fontsize = 12, framealpha = 1, edgecolor = 'black',shadow = True)
   
-  evkd_ax1.annotate(f, xy = (0.12,0.96 - spac*fidx),
-                      xytext = (0.12,0.96- spac*fidx),
+  evkd_ax1.annotate(f, xy = (0.025,0.96 - spac*fidx),
+                      xytext = (0.025,0.96- spac*fidx),
       xycoords = ('figure fraction','figure fraction'), textcoords='offset points',
       size=16, ha='left', va='top')
       
@@ -311,7 +311,7 @@ fig.legend(handles=legend_elements, loc=[0.35,0.005],ncol = 3, edgecolor = 'blac
 # print/save figure
 # plt.tight_layout()
 plt.savefig(wd + '/study2/results/first_figures.pdf') 
-plt.savefig(wd + '/study2/results/first_figures.png', dpi=300) 
+plt.savefig(wd + '/study2/results/first_figures.png', dpi=300, facecolor='white') 
 
 # %%
 ## Plot difference between conditions
@@ -370,7 +370,8 @@ for fidx,f in enumerate(features):
 
     evkd_ax1.set_xlim([-0.25,0.4])
     evkd_ax1.set_ylim([-5.5,6])
-      #evkd_ax1.legend(fontsize = 12, framealpha = 1, edgecolor = 'black',shadow = True)
+    # evkd_ax1.legend(fontsize = 12, framealpha = 1, edgecolor = 'black',shadow = True)
+
   evkd_ax1.annotate(f, xy = (0.2 + spac*fidx,0.98),
                       xytext = (0.2+ spac*fidx,0.98),
       xycoords = ('figure fraction','figure fraction'), textcoords='offset points',
