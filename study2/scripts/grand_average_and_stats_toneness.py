@@ -243,10 +243,9 @@ gs = gridspec.GridSpec(8,3,left=0.05, right=0.98,
                        width_ratios = [0.001,1,1],
                        height_ratios = [1,1,0.1,1,1,0.1,1,1])
 
-fig.suptitle("MMN signals", fontsize=16)
 
 channs = ['Fz']
-features = ['intensity', 'timbre', 'location']
+features = ['intensity', 'location', 'timbre']
 conds = ['optimal', 'hihat']
 groups = ['controls', 'amusics']
 spac = 0.315
@@ -267,8 +266,8 @@ for fidx,f in enumerate(features):
       MMN = grand_avg[g][c][f+'_MMN'].copy().pick_channels(channs).data.mean(0)*(1e6)
       time = grand_avg[g][c]['standard'].times
       evkd_ax1 = plt.subplot(gs[fidx*3+gidx,cidx+1])
-      evkd_ax1.plot(time,std,'b--',label = 'standard')
-      evkd_ax1.plot(time,dev,'r--',label = 'deviant')
+      evkd_ax1.plot(time,std,'tab:orange',label = 'standard')
+      evkd_ax1.plot(time,dev,'tab:purple',label = 'deviant')
       evkd_ax1.plot(time,MMN,'k-',label = 'MMN')
 
       # individual subject MMN traces
@@ -297,9 +296,9 @@ for fidx,f in enumerate(features):
       size=16, ha='left', va='top')
       
 ## Add legend
-legend_elements = [mpl.lines.Line2D([0], [0], color='b', lw=4, label='Standard',
+legend_elements = [mpl.lines.Line2D([0], [0], color='tab:orange', lw=4, label='Standard',
                                     ls = '--'),
-                   mpl.lines.Line2D([0], [0], color='r', lw=4, label='Deviant',
+                   mpl.lines.Line2D([0], [0], color='tab:purple', lw=4, label='Deviant',
                                     ls = '--'),
                    mpl.lines.Line2D([0], [0], color='k', lw=4, label='MMN',
                                     ls = '-')
@@ -322,9 +321,9 @@ gs = gridspec.GridSpec(3,4,left=0.05, right=0.98,
                        width_ratios = [0.001,1,1,1],
                        height_ratios = [1,1,0.1])
 channs = ['Fz']
-features = ['intensity','timbre','location']
-conds = ['optimal','hihat']
-groups = ['controls','amusics']
+features = ['intensity', 'location', 'timbre']
+conds = ['optimal', 'hihat']
+groups = ['controls', 'amusics']
 spac = 0.315
 channel_id = chann_ids['Fz']
 
@@ -343,8 +342,8 @@ for fidx,f in enumerate(features):
     dif = opt - hih
     time = grand_avg[g][c]['standard'].times
     evkd_ax1 = plt.subplot(gs[gidx,fidx+1])
-    evkd_ax1.plot(time,opt,'b--',label = 'piano')
-    evkd_ax1.plot(time,hih,'r--',label = 'hihat')
+    evkd_ax1.plot(time,opt,'tab:blue',label = 'piano')
+    evkd_ax1.plot(time,hih,'tab:olive',label = 'hihat')
     evkd_ax1.plot(time,dif,'k-',label = 'difference')
 
     # individual subject difference traces
@@ -370,7 +369,7 @@ for fidx,f in enumerate(features):
 
     evkd_ax1.set_xlim([-0.25,0.4])
     evkd_ax1.set_ylim([-5.5,6])
-    # evkd_ax1.legend(fontsize = 12, framealpha = 1, edgecolor = 'black',shadow = True)
+
 
   evkd_ax1.annotate(f, xy = (0.2 + spac*fidx,0.98),
                       xytext = (0.2+ spac*fidx,0.98),
@@ -378,9 +377,9 @@ for fidx,f in enumerate(features):
       size=16, ha='left', va='top')
       
 ## Add legend
-legend_elements = [mpl.lines.Line2D([0], [0], color='b', lw=4, label='piano',
+legend_elements = [mpl.lines.Line2D([0], [0], color='tab:blue', lw=4, label='piano',
                                     ls = '--'),
-                   mpl.lines.Line2D([0], [0], color='r', lw=4, label='hihat',
+                   mpl.lines.Line2D([0], [0], color='tab:olive', lw=4, label='hihat',
                                     ls = '--'),
                    mpl.lines.Line2D([0], [0], color='k', lw=4, label='difference',
                                     ls = '-')
