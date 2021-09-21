@@ -1,4 +1,5 @@
-setwd('/Users/jonathannasielski/Desktop/UCU/S6/Thesis/amusia_study/')
+#setwd('/Users/jonathannasielski/Desktop/UCU/S6/Thesis/amusia_study/')
+setwd('C:/Users/au571303/Documents/projects/amusia_study/')
 #install.packages("gridExtra")
 library(ggplot2)
 library(lme4)
