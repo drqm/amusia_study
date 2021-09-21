@@ -89,6 +89,24 @@ colnames(pairwise.MMNamp) <- c("feature","contrast","estimate",
 write.table(pairwise.MMNamp,file="study2/results/pairwise_MMNamp.csv",
             sep=";",row.names = FALSE,quote=FALSE) # Export to a table
 
+### Pairwise 2 + group
+confint.MMNamp <- as.data.frame(confint(lsmeans(m1,pairwise~condition|group|feature,
+                                                adjust = "Bonferroni")$contrast))
+pairwise.MMNamp <-cbind(as.data.frame(lsmeans(m1, pairwise~condition|group|feature,
+                                              adjust="bonferroni")$contrasts),
+                        confint.MMNamp[c("lower.CL","upper.CL")])
+
+pairwise.MMNamp[,"d"] <- pairwise.MMNamp$estimate/sqrt(VarCorr(m1)$subject[1] + sigma(m1)^2)
+pairwise.MMNamp <- pairwise.MMNamp[c("feature","group","contrast","estimate","lower.CL",
+                                     "upper.CL","t.ratio","d","p.value")]
+pairwise.MMNamp[,4:8] <- round(pairwise.MMNamp[,4:8],2)
+pairwise.MMNamp[9] <- round(pairwise.MMNamp[9],6)
+colnames(pairwise.MMNamp) <- c("feature","group","contrast","estimate",
+                               "CI 2.5%","CI 97.5%","t","d","p")
+
+write.table(pairwise.MMNamp,file="study2/results/pairwise_MMNamp1.csv",
+            sep=";",row.names = FALSE,quote=FALSE) # Export to a table
+
 #plot MMN Amplitude
 MMNamp <- ggplot(d,aes(condition, MMN_amplitude)) +
   geom_hline(yintercept = 0) +
